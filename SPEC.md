@@ -45,7 +45,7 @@ type Policy = {
 }
 
 type RecipientShare = {
-  recipient?: <string>
+  recipient: <string>
 }
 ```
 
