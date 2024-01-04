@@ -28,4 +28,6 @@ jobs:
       run: go test -v ./...
 
     - name: Test E2E
-      run: testscript ./testdata/*.txt
+      run: |
+        GOBIN=$HOME/.local/bin/ go install github.com/rogpeppe/go-internal/cmd/testscript@latest
+        testscript ./testdata/*.txt
