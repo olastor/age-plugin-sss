@@ -1,0 +1,36 @@
+# encrypt and decrypt with a simple policy
+exec age-plugin-sss --generate-recipient policy.yaml
+cmp stdout recipient.txt
+! stderr .
+
+exec age -R recipient.txt -o test.age input
+! stderr .
+
+exec age -d -i identity-ok.txt test.age
+cmp stdout input
+! stderr .
+
+exec age -d -i identity-ok.txt test.age
+cmp stdout input
+! stderr .
+
+! exec age -d -i identity-fail.txt test.age
+! cmp stdout input
+stderr 'failed unwrap less than two parts cannot be used to reconstruct the secret'
+
+-- input --
+it works
+-- policy.yaml --
+threshold: 2
+shares:
+  - recipient: age1gt9k3rqk79zszpc03jzv3f3rm6cjy96rkzdcc2m6ygkprf28nyeqez0hlq
+  - threshold: 2
+    shares:
+      - recipient: age17mwtp9jewsx36ylch2fktnm7uvdekacg8y9awau7tszhv5h7tf4qce6283
+      - age18qret9q3ft7hy4y86d6cdzsyaaqlfn4k85j77l5ka06km3rs2s5sulxpwh
+-- recipient.txt --
+age1sss1r79ssqqqqqqqqq8ldnxykm5yyqvqpc9mln44jkzsre02txg9gxg03qu3suaxpwrmjvndmagzmups2ehjsgx08acrp9n9p2let295fx3zwtvhywl5gzmhv52t2ds842ujy4kgh43ykzaw9yfvz9ant5d5c8us3l048lyuxhgwhxvnkleg4d0rkc43ajqel4mz2r54249fde6l9y5mhvnv0zca5vmgcz86f0lrzg3x2dj2fdns2lrj4kxz7nf8y4f202ac729x34enlgg6rqrf5vkf2vl0meacrh68wllhnuqqqq8llutranvd7qqqqqqx7fn6d
+-- identity-ok.txt --
+AGE-PLUGIN-SSS-1R79SSQQQQQQQQQ8LWNXYZM5YYQ2QP59MKZHGJ42SNYWAZ0CJR9LVPL6P5N56AX6EWUULRM4AGRNS9ME9NCLMLCHK75FY7UGNV6ZCVCX7SYDSWELND82KQRM02K88V5NU365Z2EMDANPWHENSRP7GF8GRSCZ3PE0CAP3FSJ844E2P9478LLJD3NFW4NPK9RFVD3DDD9DYA8JTCGHCKNT5M4ENJJ0W7ZWF0WZLRNJNTJYND2W7J2AP6UVEV05K4HC7XGWZ6SQAVVZHWV5MMSJLL6QD6DPTJQRW496CX2VY89Q6L3040H7S2QQQLLLUD3WJCVPQZQQQZVFQ8W
+-- identity-fail.txt --
+AGE-PLUGIN-SSS-1R79SSQQQQQQQQQ8LDNXRZM5XYQ2QPC9MXRTCFZKQE7L3Z7V33ZLGQ0Q3DXA82U0WDZ78KT7SPD7R0WM70MVLH6MXZAANXW6PJASAEQ96QPNL06D97TR75E2FLCJ7N4RGQC4VV7J86VW9P2F4C9RPRGCRC3QJ7LV24UKYT2PDK0N7XL7JWZXKUN94D7PP7SEU8PQD822P8ZYKE60HW5GEDVKT55PVUWC0ETTGCEG8V8V08L0UQ5QQPLLL4XTP7C90QQQQQ5E76QD
