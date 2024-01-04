@@ -156,9 +156,9 @@ In order to reference a single leaf in the policy tree, the plugin must offer a 
 2. For each share item in the policy:
   1. If the item is a policy: Recursive application of this routine using the key share as the file key.
   2. If the item is a recipient:
-    - Split the byte of the X coordinate off the key share and store it in the dedicated field.
-    - Encrypt the key share (without the X byte) with the recipient.
-    - Store the resulting stanza wrapping the key share in the dedicated field.
+      - Split the byte of the X coordinate off the key share and store it in the dedicated field.
+      - Encrypt the key share (without the X byte) with the recipient.
+      - Store the resulting stanza wrapping the key share in the dedicated field.
 
 ## Decryption
 
