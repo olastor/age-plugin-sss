@@ -169,14 +169,17 @@ func (stanza *SSSStanza) Unwrap (identity *SSSIdentity) (data []byte, err error)
     remainingStanzaIdsByType := stanza.getUnecryptedIdsByType()
 
     switch {
-    case strings.HasPrefix(id.IdentityStr, "password-"):
-      if id.IdentityStr == "password-" {
-        return nil, errors.New("Missing id on password")
+    case strings.HasPrefix(id.IdentityStr, "password"):
+      msg := "Please enter the password:"
+
+      // the slug is only "nice to have" for decryption, so it shouldn't be enforced
+      if len(id.IdentityStr) > 9 {
+        passwordId := id.IdentityStr[9:]
+        msg = fmt.Sprintf("Please enter password \"%s\":", passwordId)
       }
 
       // ask for the password
-      passwordId := id.IdentityStr[9:]
-      password, err := RequestValue(fmt.Sprintf("Please enter password \"%s\":", passwordId), true)
+      password, err := RequestValue(msg, true)
       if err != nil {
         return nil, err
       }
