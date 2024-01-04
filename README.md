@@ -1,5 +1,7 @@
 # age-plugin-sss
 
+⚠️ Consider this plugin to be experimental until the version v1.0.0 is published! ⚠️
+
 ---
 
 :scissors: Split encryption keys and encrypt key shares with different [age](https://github.com/FiloSottile/age) (licensed BSD 3-Clause) recipients.
