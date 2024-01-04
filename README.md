@@ -14,6 +14,10 @@
 
 ## Installation
 
+### Requirements
+
+- [age](https://github.com/FiloSottile/age) (>= 1.1.0) or [rage](https://github.com/str4d/rage)
+
 ### Build from source
 
 Run
