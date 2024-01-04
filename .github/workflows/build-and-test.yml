@@ -29,5 +29,8 @@ jobs:
 
     - name: Test E2E
       run: |
-        GOBIN=$HOME/.local/bin/ go install github.com/rogpeppe/go-internal/cmd/testscript@latest
+        export GOBIN="$HOME/.local/bin/"
+        go install github.com/rogpeppe/go-internal/cmd/testscript@v1.12.0
+        go install filippo.io/age@v1.1.1
+        cp age-plugin-sss "$HOME/.local/bin/age-plugin-sss"
         testscript ./testdata/*.txt
