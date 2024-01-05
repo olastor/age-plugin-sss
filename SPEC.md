@@ -108,7 +108,7 @@ An identity is likewise generated from a YAML file containing a flat list of ide
 
 ### YAML Format
 
-The YAML representation is a simple flat list of identities under the top-level key `identities`. Each item is either the identity string, or an object with the mandatory field `identity` and an optional field `share_id` to specify the exact share in the stanza that should be encrypted with the identity. The `share_id` can be used to eliminate ambiguities which might lead to unnecessary user interactions (e.g., with hardware tokens). The `share_id` can be determined via the stanza inspection feature described below.
+The YAML representation is a simple flat list of identities under the top-level key `identities`. Each item is either the identity string, or an object with the mandatory field `identity` and an optional field `share_id` to specify the exact share in the stanza that should be encrypted with the identity. The `share_id` can be used to eliminate ambiguities which might lead to unnecessary user interactions (e.g., with hardware tokens). The `share_id` can be determined via the stanza inspection feature.
 
 **Example:**
 
