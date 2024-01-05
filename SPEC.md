@@ -11,7 +11,7 @@ Shamir's Secret Sharing (SSS) [1] is a cryptographic scheme in which a secret _s
 
 ### Policies based on SSS
 
-Recursive application of SSS enables more complex secret sharing structures in which shares themselves are splitted. This allows for the definition of arbitrarily complex trees that define sophisticated policies about which combinations of shares are eligble for secret recovery, and which are not. See also [3]. 
+Recursive application of SSS enables more complex secret sharing structures in which shares themselves are splitted. This allows for the definition of arbitrarily complex trees that define sophisticated policies about which combinations of shares are eligble for secret recovery, and which are not. See [3] for an existing implementation. 
 
 #### Example
 
@@ -177,5 +177,7 @@ In order to reference a single leaf in the policy tree, the plugin must offer a 
 ## References
 
 [1] ["How to Share a Secret" (Adi Shamir, MIT 1979)](https://web.mit.edu/6.857/OldStuff/Fall03/ref/Shamir-HowToShareASecret.pdf)
+
 [2] [Hashicorp Vault's SSS implementation (licensed MPL-2.0)](https://github.com/hashicorp/vault/blob/1c04c8ab627f7e00c93ae5b623fc86efd4b028fa/shamir/shamir.go#L139)
+
 [3] ["SSS PIN" of the encryption tool clevis](https://github.com/latchset/clevis?tab=readme-ov-file#pin-shamir-secret-sharing).
