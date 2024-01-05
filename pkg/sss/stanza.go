@@ -165,7 +165,7 @@ func (stanza *SSSStanza) Unwrap (identity *SSSIdentity) (data []byte, err error)
     return getRank(identities[i]) < getRank(identities[j])
   })
 
-  for _, id := range identities {
+  for i, id := range identities {
     remainingStanzaIdsByType := stanza.getUnecryptedIdsByType()
 
     switch {
@@ -200,7 +200,7 @@ func (stanza *SSSStanza) Unwrap (identity *SSSIdentity) (data []byte, err error)
         if len(shareIds) == 1 {
           id.ShareId = shareIds[0]
         } else {
-          selectedId, err := stanza.getUserSelectedShareId(func (shareId int) string {
+          selectedId, err := stanza.getUserSelectedShareId(i, func (shareId int) string {
             if !slices.Contains(shareIds, shareId) {
               // plugins could handle different types of stanzas
               return ""
@@ -241,15 +241,16 @@ func (stanza *SSSStanza) Unwrap (identity *SSSIdentity) (data []byte, err error)
   return stanza.recoverSecret()
 }
 
-func (stanza *SSSStanza) getUserSelectedShareId (printIdFn PrintIdFunction) (selectedId int, err error) {
-  message := "\n\n" +stanza.getTreeAsString(0, printIdFn) + "\n"
+func (stanza *SSSStanza) getUserSelectedShareId (identityIndex int, printIdFn PrintIdFunction) (selectedId int, err error) {
+  message := fmt.Sprintf("\n\nEncountered multiple options for identity #%x.", identityIndex + 1)
+  message += "\n\n" +stanza.getTreeAsString(0, printIdFn) + "\n"
 
   err = SendCommand("msg", []byte(message), true)
   if err != nil {
     return 0, err
   }
 
-  selectedIdStr, err := RequestValue("Encountered multiple options.\nPlease choose the share id to use for decryption:", false)
+  selectedIdStr, err := RequestValue("Please choose the share id to use:", false)
   if err != nil {
     return 0, err
   }
