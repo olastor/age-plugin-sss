@@ -206,7 +206,7 @@ func (stanza *SSSStanza) Unwrap (identity *SSSIdentity) (data []byte, err error)
               return ""
             }
 
-            return fmt.Sprintf("[id=%x]", shareId)
+            return fmt.Sprintf(" [id=%x]", shareId)
           })
 
           if err != nil {
@@ -267,24 +267,36 @@ func (stanza *SSSStanza) Marshal () (data []byte, err error) {
 type PrintIdFunction func (shareId int) string
 
 func (stanza *SSSStanza) getTreeAsString (indent int, printIdFn PrintIdFunction) (tree string) {
+  line_indent := 1
+
   if stanza.Threshold > 0 && len(stanza.Shares) > 0 {
     if indent == 0 {
-      tree += fmt.Sprintf("%sSSS\n", strings.Repeat(" ", indent))
-    } else {
-      tree += fmt.Sprintf("%s├─ SSS\n", strings.Repeat(" ", indent - 4))
+      tree += fmt.Sprintf("%ssss (t=%x)\n", strings.Repeat(" ", indent), stanza.Threshold)
     }
 
-    for _, share := range stanza.Shares {
-      if share.Stanza != nil {
-        id := ""
-        if share.ShareId > 0 {
-          id = printIdFn(share.ShareId)
-        }
-
-        tree += fmt.Sprintf("%s├─ %s%s\n", strings.Repeat(" ", indent), share.Stanza[0].Type, id)
+    for i, share := range stanza.Shares {
+      box_char := "├─"
+      if i == len(stanza.Shares) - 1 {
+        box_char = "└─"
       }
 
-      tree += share.getTreeAsString(indent + 4, printIdFn)
+      id := ""
+      if share.ShareId > 0 {
+        id = printIdFn(share.ShareId)
+      }
+
+      stanzaType := "unknown"
+      if share.Stanza != nil {
+        stanzaType = strings.ToLower(share.Stanza[0].Type)
+      } else if share.Shares != nil {
+        stanzaType = fmt.Sprintf("sss (t=%x)", share.Threshold)
+      }
+
+      tree += fmt.Sprintf("%s%s %s%s\n", strings.Repeat(" ", line_indent + indent), box_char, stanzaType, id)
+
+      if share.Shares != nil {
+        tree += share.getTreeAsString(indent + 4, printIdFn)
+      }
     }
   }
 
@@ -293,6 +305,6 @@ func (stanza *SSSStanza) getTreeAsString (indent int, printIdFn PrintIdFunction)
 
 func (stanza *SSSStanza) PrintTree () () {
   fmt.Printf(stanza.getTreeAsString(0, func (shareId int) string {
-    return fmt.Sprintf("[id=%x]", shareId)
+    return fmt.Sprintf(" [id=%x]", shareId)
   }))
 }
