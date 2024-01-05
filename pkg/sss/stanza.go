@@ -194,29 +194,31 @@ func (stanza *SSSStanza) Unwrap (identity *SSSIdentity) (data []byte, err error)
         return nil, err
       }
 
-      // find the matching stanza
-      shareIds := remainingStanzaIdsByType[strings.ToLower(id.Identity.(*plugin.Identity).Name())]
-      if len(shareIds) == 1 {
-        id.ShareId = shareIds[0]
-      } else {
-        selectedId, err := stanza.getUserSelectedShareId(func (shareId int) string {
-          if !slices.Contains(shareIds, shareId) {
-            // plugins could handle different types of stanzas
-            return ""
+      if id.ShareId == 0 {
+        // find the matching stanza
+        shareIds := remainingStanzaIdsByType[strings.ToLower(id.Identity.(*plugin.Identity).Name())]
+        if len(shareIds) == 1 {
+          id.ShareId = shareIds[0]
+        } else {
+          selectedId, err := stanza.getUserSelectedShareId(func (shareId int) string {
+            if !slices.Contains(shareIds, shareId) {
+              // plugins could handle different types of stanzas
+              return ""
+            }
+
+            return fmt.Sprintf("[id=%x]", shareId)
+          })
+
+          if err != nil {
+            return nil, err
           }
 
-          return fmt.Sprintf("[id=%x]", shareId)
-        })
+          if !slices.Contains(shareIds, selectedId) {
+            return nil, errors.New("Invalid id selected")
+          }
 
-        if err != nil {
-          return nil, err
+          id.ShareId = selectedId
         }
-
-        if !slices.Contains(shareIds, selectedId) {
-          return nil, errors.New("Invalid id selected")
-        }
-
-        id.ShareId = selectedId
       }
     case strings.HasPrefix(id.IdentityStr, "AGE-SECRET-KEY-1"):
       id.Identity, err = age.ParseX25519Identity(id.IdentityStr)
