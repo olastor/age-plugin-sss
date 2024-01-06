@@ -1,6 +1,6 @@
 # age-plugin-sss
 
-⚠️ Consider this plugin to be experimental until the version v1.0.0 is published! ⚠️
+⚠️ Consider this plugin to be experimental until the version v1.0.0 is published! Open for feedback and improvements. Disclaimer: This is my first project in Go. ⚠️
 
 ---
 
@@ -46,6 +46,8 @@ shares:
 ```
 
 In this case, the file key will be split into three shares, each of which will be encrypted with one of the three recipients in the `shares` array. The `threshold` specifies how many of the shares are required to decrypt the file again. For our example, any two identities that correspond to a recipient in the list will suffice.
+
+You can not only use native age recipients (see below how to handle passwords), but also plugin recipients! SSH recipients are not supported [yet](https://github.com/olastor/age-plugin-sss/issues/1).
 
 Next, generate a new recipient from this policy file:
 
