@@ -45,7 +45,7 @@ shares:
   - age1zunvd6ztdeljcxzhe70370cx5q54czyhy2qjgsnju9rsyjaexqqqfrxg2w
 ```
 
-In this case, the file key will be split into three shares, each of which will be encrypted with one of the three recipients in the `shares` array. The `threshold` specifies how many of the shares are required to decrypt the file again. For our example, any two identities that correspond to a recipient in the list will suffice. 
+In this case, the file key will be split into three shares, each of which will be encrypted with one of the three recipients in the `shares` array. The `threshold` specifies how many of the shares are required to decrypt the file again. For our example, any two identities that correspond to a recipient in the list will suffice.
 
 Next, generate a new recipient from this policy file:
 
@@ -87,9 +87,76 @@ $ age -d -i id.txt testing.enc
 it works
 ```
 
-####
-
 ### Advanced Usage
+
+#### Passwords
+
+Let's say you want to split the encryption key into shares wrapped by different passwords. As there is no recipient string you can generate, you must provide a special keyword of the form `password-<name-or-slug>`, e.g.
+
+```yaml
+threshold: 3
+shares:
+  - password-alice
+  - password-bob
+  - password-chris
+```
+
+The plugin will ask you for each password upon encryption. Please notice that
+
+- the name/slug is required, but it is not persisted in the encrypted file. It's only there for you to not confuse passwords when interacting with the cli.
+- the name/slug is mandatory for encryption, but optional for decryption (as the plugin will try all password stanzas until it finds the correct one). So having one or multiple identities named `password` is fine.
 
 #### (More) Complex Policies
 
+Let's say you want to encrypt a file so that in addition to your X25519 identity you also need one of two fido2 keys for decryption. This can be achived by adding a nested policy in one of the shares as such:
+
+```yaml
+threshold: 2
+shares:
+  - age1t7cexdfjmkk4fgsf6pgzhn0skk0qewxr9y7tdu3l639fdmptcaxqv3nznt
+  - threshold: 1
+    shares:
+      - age1fido2-hmac1qqa...
+      - age1fido2-hmac1qqb...
+```
+
+You can add as many nested level as you want. Please notice, however, that for decryption the (sss-)plugin might ask you which share to decrypt in the case of plugin recipients/identities interactively and that the recipient string encoding the policy will be rather long.
+
+#### Pinning identities to a specific share
+
+You can bypass the user interaction for selecting the share if the plugin is unsure about which one to choose by specifying a `share_id` in your identity file. To find out which share in the policy tree you want to target, you can inspect the policy of the encrypted file with the following command:
+
+```
+$ age-plugin-sss --inspect test.enc
+sss (t=2)
+ ├─ x25519 [id=1]
+ └─ sss (t=1)
+     ├─ fido2-hmac [id=2]
+     └─ fido2-hmac [id=3]
+```
+
+For example, you may only want to use one of your fido2 tokens for decryption because the other one is only a backup. In your identity YAML file, simply pin the `share_id` to the correct one:
+
+```yaml
+identities:
+  - AGE-SECRET-KEY-1XUR5...
+  - share_id: 3
+    identity: AGE-PLUGIN-FIDO2-HMAC-1VE5KGMEJ945X6CTRM2TF76
+```
+
+#### Converting recipients/identities back to YAML
+
+You can always decode a recipient or identity with the `--decode` flag by passing the string via STDIN:
+
+```bash
+$ cat recipient.txt | age-plugin-sss --decode
+threshold: 2
+shares:
+    - recipient: age1t7cexdfjmkk4fgsf6pgzhn0skk0qewxr9y7tdu3l639fdmptcaxqv3nznt
+    - recipient: age1jcq99v6f74gwstqhg2vsll5s3rckdys8ttr2nnrzpegxu0y533vqnf7d2u
+    - recipient: age1zunvd6ztdeljcxzhe70370cx5q54czyhy2qjgsnju9rsyjaexqqqfrxg2w
+```
+
+#### Using the same recipient multiple times
+
+It's totally valid to define the same recipient more than once anywhere inside a policy. However, when decrypting you must list the same identity multiple times, as well. This is because with the current design the plugin assumes that one recipient only unwraps one share. For plugin identities, you may also consider specifying the `share_id` in your identity YAML file.
