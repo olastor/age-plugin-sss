@@ -161,4 +161,4 @@ shares:
 
 #### Using the same recipient multiple times
 
-It's totally valid to define the same recipient more than once anywhere inside a policy. However, when decrypting you must list the same identity multiple times, as well. This is because with the current design the plugin assumes that one recipient only unwraps one share. For plugin identities, you may also consider specifying the `share_id` in your identity YAML file.
+It's totally valid to define the same recipient more than once anywhere inside a policy. However, when decrypting you must list the same identity multiple times, as well. This is because with the current design the plugin assumes that one identity only unwraps one share. For plugin identities, you may also consider specifying the `share_id` in your identity YAML file.
