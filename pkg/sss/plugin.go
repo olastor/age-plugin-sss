@@ -262,7 +262,7 @@ func RecipientV1 () error {
     return fmt.Errorf("missing policy")
   }
 
-  SendCommand("done", nil, false)
+  SendCommand("done", nil, true)
 
   return nil
 }
@@ -325,7 +325,7 @@ func IdentityV1 () error {
     }
 
     SendCommand("file-key 0", []byte(key), false)
-    SendCommand("done", nil, false)
+    SendCommand("done", nil, true)
   }
 
   return nil
