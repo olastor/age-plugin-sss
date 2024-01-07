@@ -36,6 +36,7 @@ jobs:
         cp LICENSE $DIR/age-plugin-sss
         VERSION="$(git describe --tags --always)"
         go build -o "$DIR/age-plugin-sss" -ldflags "-X main.Version=$VERSION" -v ./cmd/...
+        cp $DIR/age-plugin-sss . # copy for testing
         if [ "$GOOS" == "windows" ]; then
           ( cd "$DIR"; zip age-plugin-sss.zip -r age-plugin-sss )
           mv "$DIR/age-plugin-sss.zip" "age-plugin-sss-$VERSION-$GOOS-$GOARCH.zip"
