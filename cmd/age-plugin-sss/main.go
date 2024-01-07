@@ -11,12 +11,9 @@ import (
   "github.com/olastor/age-plugin-sss/pkg/sss"
 )
 
-func main() {
-  if len(os.Args) == 1 {
-    flag.Usage()
-    os.Exit(1)
-  }
+var Version string
 
+func main() {
   var (
     pluginFlag              string
     inspectFlag             string
@@ -24,15 +21,15 @@ func main() {
     generateIdentityFlag    string
     decodeFlag              bool
     helpFlag                bool
+    versionFlag             bool
   )
 
   flag.StringVar(&pluginFlag, "age-plugin", "", "Used by age for interacting with the plugin.")
   flag.StringVar(&inspectFlag, "inspect", "", "Display the policy structure of `ENCRYPTED_FILE`.")
   flag.StringVar(&generateRecipientFlag, "generate-recipient", "", "Generate a recipient from a YAML policy stored in `FILE`.")
   flag.StringVar(&generateIdentityFlag, "generate-identity", "", "Generate an identity from a YAML policy stored in `FILE`.")
-
   flag.BoolVar(&decodeFlag, "decode", false, "Decode recipient or identity from STDIN back to YAML.")
-
+  flag.BoolVar(&versionFlag, "v", false, "Show the version.")
   flag.BoolVar(&helpFlag, "h", false, "Show this help message.")
   flag.BoolVar(&helpFlag, "help", false, "Show this help message.")
 
@@ -133,4 +130,12 @@ func main() {
 
     os.Exit(1)
   }
+
+  if versionFlag && Version != "" {
+    fmt.Println(Version)
+    os.Exit(0)
+  }
+
+  flag.Usage()
+  os.Exit(1)
 }
