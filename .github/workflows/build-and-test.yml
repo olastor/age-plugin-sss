@@ -31,29 +31,8 @@ jobs:
 
     - name: Build
       run: |
-        DIR="$(mktemp -d)"
-        mkdir "$DIR/age-plugin-sss"
-        cp LICENSE $DIR/age-plugin-sss
         VERSION="$(git describe --tags --always)"
-        go build -o "$DIR/age-plugin-sss" -ldflags "-X main.Version=$VERSION" -v ./cmd/...
-        cp $DIR/age-plugin-sss/age-plugin-sss . # copy for testing
-        if [ "$GOOS" == "windows" ]; then
-          ( cd "$DIR"; zip age-plugin-sss.zip -r age-plugin-sss )
-          mv "$DIR/age-plugin-sss.zip" "age-plugin-sss-$VERSION-$GOOS-$GOARCH.zip"
-        else
-          tar -cvzf "age-plugin-sss-$VERSION-$GOOS-$GOARCH.tar.gz" -C "$DIR" age-plugin-sss
-        fi
-      env:
-        CGO_ENABLED: 0
-        GOOS: ${{ matrix.GOOS }}
-        GOARCH: ${{ matrix.GOARCH }}
-        GOARM: ${{ matrix.GOARM }}
-
-    - name: Upload workflow artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: plugin-binaries
-        path: age-plugin-sss*
+        go build -ldflags "-X main.Version=$VERSION" -v ./cmd/...
 
     - name: Test
       run: go test -v ./...
@@ -65,6 +44,29 @@ jobs:
         go install filippo.io/age/cmd/...@latest
         cp age-plugin-sss "$HOME/.local/bin/age-plugin-sss"
         testscript ./testdata/*.txt
+
+    - name: Package
+      run: |
+        DIR="$(mktemp -d)"
+        mkdir "$DIR/age-plugin-sss"
+        cp LICENSE "$DIR/age-plugin-sss"
+        mv age-plugin-sss "$DIR/age-plugin-sss"
+        if [ "$GOOS" == "windows" ]; then
+          ( cd "$DIR"; zip age-plugin-sss.zip -r age-plugin-sss )
+          mv "$DIR/age-plugin-sss.zip" "age-plugin-sss-$VERSION-$GOOS-$GOARCH.zip"
+        else
+          tar -cvzf "age-plugin-sss-$VERSION-$GOOS-$GOARCH.tar.gz" -C "$DIR" age-plugin-sss
+        fi
+      env:
+        GOOS: ${{ matrix.GOOS }}
+        GOARCH: ${{ matrix.GOARCH }}
+        GOARM: ${{ matrix.GOARM }}
+
+    - name: Upload workflow artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: plugin-binaries
+        path: age-plugin-sss*
 
   release:
     name: Upload release binaries
