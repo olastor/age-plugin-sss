@@ -34,7 +34,7 @@ jobs:
         DIR="$(mktemp -d)"
         mkdir "$DIR/age-plugin-sss"
         cp LICENSE $DIR/age-plugin-sss
-        VERSION="$(git describe --tags)"
+        VERSION="$(git describe --tags --always)"
         go build -o "$DIR/age-plugin-sss" -ldflags "-X main.Version=$VERSION" -v ./cmd/...
         if [ "$GOOS" == "windows" ]; then
           ( cd "$DIR"; zip age-plugin-sss.zip -r age-plugin-sss )
@@ -64,7 +64,6 @@ jobs:
         go install filippo.io/age/cmd/...@latest
         cp age-plugin-sss "$HOME/.local/bin/age-plugin-sss"
         testscript ./testdata/*.txt
-
 
   release:
     name: Upload release binaries
