@@ -65,6 +65,7 @@ jobs:
         cp age-plugin-sss "$HOME/.local/bin/age-plugin-sss"
         testscript ./testdata/*.txt
 
+
   release:
     name: Upload release binaries
     if: github.event_name == 'release'
