@@ -47,6 +47,7 @@ jobs:
 
     - name: Package
       run: |
+        VERSION="$(git describe --tags --always)"
         DIR="$(mktemp -d)"
         mkdir "$DIR/age-plugin-sss"
         cp LICENSE "$DIR/age-plugin-sss"
