@@ -20,14 +20,18 @@
 
 - [age](https://github.com/FiloSottile/age) (>= 1.1.0) or [rage](https://github.com/str4d/rage)
 
+### Download/Install Binary
+
+Go to the [release page](https://github.com/olastor/age-plugin-sss/releases/) and download the correct binary for your architecture. Unpack it and move it to a directory in your `$PATH`.
+
 ### Build from source
 
-Run
+Alternatively the plugin can be built from source. Simply run
 
 ```bash
 go build -v ./cmd/...
 ```
-and copy `age-plugin-sss` to a directory of your `$PATH`.
+and copy the binary `age-plugin-sss` to a directory of your `$PATH`.
 
 ## Usage
 
