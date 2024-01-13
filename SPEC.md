@@ -11,7 +11,7 @@ Shamir's Secret Sharing (SSS) [1] is a cryptographic scheme in which a secret _s
 
 ### Policies based on SSS
 
-Recursive application of SSS enables more complex secret sharing structures in which shares themselves are splitted. This allows for the definition of arbitrarily complex trees that define sophisticated policies about which combinations of shares are eligble for secret recovery, and which are not. See [3] for an existing implementation. 
+Recursive application of SSS enables more complex secret sharing structures in which shares themselves are splitted. This allows for the definition of arbitrarily complex trees that define sophisticated policies about which combinations of shares are eligble for secret recovery, and which are not. See [3] for an existing implementation.
 
 #### Example
 
@@ -96,7 +96,7 @@ age <---> age-plugin-sss <---> age-plugin-x
 
 #### SSH Recipients
 
-TBA
+SSH recipients/identities may be used, as well. In the identity file, the raw private key must be added as a multi-line string. The plugin must prompt for the password if the private key is passphrase protected and the public key is included in the [error](https://pkg.go.dev/golang.org/x/crypto/ssh#PassphraseMissingError).
 
 ### Conversion to YAML
 

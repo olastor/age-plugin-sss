@@ -2,6 +2,8 @@ c2sp.org/CCTV/age v0.0.0-20221230231406-5ea85644bd03 h1:0e2QjhWG02SgzlUOvNYaFraf
 c2sp.org/CCTV/age v0.0.0-20221230231406-5ea85644bd03/go.mod h1:FomMrUJ2Lxt5jCLmZkG3FHa72zUprnhd3v/Z18Snm4w=
 filippo.io/age v1.1.2-0.20230920124100-101cc8676386 h1:cMNckh2AzWP8qr+i+WgCVteMLFoDOkLy+6AsYRWwfVU=
 filippo.io/age v1.1.2-0.20230920124100-101cc8676386/go.mod h1:y3Zb/i2jHg/kL8xc3ocrI0Wd0Vm+VWV6DKfsKzSGUmU=
+filippo.io/edwards25519 v1.0.0 h1:0wAIcmJUqRdI8IJ/3eGi5/HwXZWPujYXXlkrQogz0Ek=
+filippo.io/edwards25519 v1.0.0/go.mod h1:N1IkdkCkiLB6tki+MYJoSx2JTY9NUlxZE7eHn5EwJns=
 github.com/hashicorp/vault v1.15.4 h1:VyHhGYIUIUTJC55DOsNsCpU8rbQ36veln/J/Zb7q8NM=
 github.com/hashicorp/vault v1.15.4/go.mod h1:Q/SaVsPCcXA8UXU+4hcXKYPhThBmw27qKZQpPCJivAc=
 github.com/rogpeppe/go-internal v1.11.0 h1:cWPaGQEPrBb5/AsnsZesgZZ9yb1OQ+GOISoDNXVBh4M=

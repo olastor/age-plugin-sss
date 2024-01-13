@@ -280,7 +280,6 @@ func IdentityV1 () error {
         if err != nil {
           return false, fmt.Errorf("Error parsing identity: %s", err)
         }
-
         identities = append(identities, parsedIdentity)
       case "recipient-stanza":
         if args[1] != "sss" {

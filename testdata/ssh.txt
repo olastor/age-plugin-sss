@@ -1,0 +1,29 @@
+# encrypt/decrypt with ssh
+exec sh -c 'age-plugin-sss --generate-recipient policy.yaml > recipient.txt'
+! stderr .
+
+exec sh -c 'age-plugin-sss --generate-identity identity.yaml > identity.txt'
+! stderr .
+
+exec age -R recipient.txt -o test.age input
+! stderr .
+
+exec age -d -i identity.txt test.age
+cmp stdout input
+! stderr .
+-- input --
+it works
+-- policy.yaml --
+threshold: 1
+shares:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL84xOFSWXIcAeQK8CJ0qvHojdFZDuLGRe5FPg4aM3kY testing@local
+-- identity.yaml --
+identities:
+  - |
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+    QyNTUxOQAAACC/OMThUllyHAHkCvAidKrx6I3RWQ7ixkXuRT4OGjN5GAAAAKCxGCybsRgs
+    mwAAAAtzc2gtZWQyNTUxOQAAACC/OMThUllyHAHkCvAidKrx6I3RWQ7ixkXuRT4OGjN5GA
+    AAAEBqlzBxbT+cd7xs19UN6ZFKG2bb4vtoR6/7FHt7yJ4DZ784xOFSWXIcAeQK8CJ0qvHo
+    jdFZDuLGRe5FPg4aM3kYAAAAGnNlYmFzdGlhbkBmZWRvcmEuZnJpdHouYm94AQID
+    -----END OPENSSH PRIVATE KEY-----

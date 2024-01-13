@@ -1,4 +1,4 @@
-# encrypt and decrypt with a simple policy
+# encrypt and decrypt with a nested policy
 exec age-plugin-sss --generate-recipient policy.yaml
 cmp stdout recipient.txt
 ! stderr .

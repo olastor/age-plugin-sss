@@ -1,4 +1,4 @@
-# encrypt and decrypt with a simple policy
+# decode recipients/identities
 exec age-plugin-sss --generate-recipient policy.yaml
 cmp stdout policy.pub
 ! stderr .

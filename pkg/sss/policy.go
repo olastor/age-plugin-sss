@@ -5,6 +5,7 @@ import (
   "errors"
   "strings"
   "filippo.io/age"
+  "filippo.io/age/agessh"
   "filippo.io/age/plugin"
   "github.com/hashicorp/vault/shamir"
 )
@@ -85,8 +86,12 @@ func (policy *SSS) Wrap(fileKey []byte) (stanza *SSSStanza, err error) {
     return nil, errors.New("missing recipient in policy")
   }
 
+  policy.Recipient = strings.TrimSpace(policy.Recipient)
+
   var wrappedShare []*age.Stanza
-  if strings.HasPrefix(policy.Recipient, "password-") {
+
+  switch {
+  case strings.HasPrefix(policy.Recipient, "password-"):
     if policy.Recipient == "password-" {
       return nil, errors.New("missing identifier for password")
     }
@@ -116,28 +121,38 @@ func (policy *SSS) Wrap(fileKey []byte) (stanza *SSSStanza, err error) {
     if err != nil {
       return nil, err
     }
-  }
-
-  if wrappedShare == nil {
+	case strings.HasPrefix(policy.Recipient, "age1") && strings.Count(policy.Recipient, "1") > 1:
     pluginRecipient, err := plugin.NewRecipient(policy.Recipient, PluginTerminalUIProxy)
-    if err == nil {
-      wrappedShare, err = pluginRecipient.Wrap(fileKey)
-
-      if err != nil {
-        return nil, err
-      }
+    if err != nil {
+      return nil, err
     }
-  }
 
-  if wrappedShare == nil {
+    wrappedShare, err = pluginRecipient.Wrap(fileKey)
+    if err != nil {
+      return nil, err
+    }
+	case strings.HasPrefix(policy.Recipient, "age1"):
     x25519Recipient, err := age.ParseX25519Recipient(policy.Recipient)
-    if err == nil {
-      wrappedShare, err = x25519Recipient.Wrap(fileKey)
-
-      if err != nil {
-        return nil, err
-      }
+    if err != nil {
+      return nil, err
     }
+
+    wrappedShare, err = x25519Recipient.Wrap(fileKey)
+    if err != nil {
+      return nil, err
+    }
+	case strings.HasPrefix(policy.Recipient, "ssh-"):
+    sshRecipient, err := agessh.ParseRecipient(policy.Recipient)
+    if err != nil {
+      return nil, err
+    }
+
+    wrappedShare, err = sshRecipient.Wrap(fileKey)
+    if err != nil {
+      return nil, err
+    }
+  default:
+    return nil, fmt.Errorf("unsupported recipient %s", policy.Recipient)
   }
 
   if wrappedShare == nil {

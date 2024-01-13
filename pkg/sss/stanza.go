@@ -7,7 +7,9 @@ import (
   "errors"
   "sort"
   "strconv"
+  "golang.org/x/crypto/ssh"
   "filippo.io/age"
+  "filippo.io/age/agessh"
   "filippo.io/age/plugin"
   "github.com/hashicorp/vault/shamir"
 )
@@ -76,13 +78,13 @@ func (stanza *SSSStanza) recoverSecret () (fileKey []byte, err error) {
     }
 
     if keyShare != nil {
+      if stanza.Threshold == 1 {
+        // the share is the secret
+        return keyShare, nil
+      }
+
       shares = append(shares, getShareWithX(keyShare, share))
     }
-  }
-
-  // no shamir required for t=1
-  if stanza.Threshold == 1 && len(shares) > 0 {
-    return shares[0], nil
   }
 
   return shamir.Combine(shares)
@@ -226,7 +228,37 @@ func (stanza *SSSStanza) Unwrap (identity *SSSIdentity) (data []byte, err error)
         return nil, err
       }
     default:
-      continue
+      // check if it's an SSH identity
+      pemBytes := []byte(strings.TrimSpace(id.IdentityStr))
+      id.Identity, err = agessh.ParseIdentity(pemBytes)
+      if err != nil {
+        switch v := err.(type) {
+        case *ssh.PassphraseMissingError:
+          if v.PublicKey == nil {
+            // we need the pubkey to unlock the ssh key
+            return nil, err
+          }
+
+          id.Identity, err = agessh.NewEncryptedSSHIdentity(v.PublicKey, pemBytes, func () ([]byte, error) {
+            passphrase, err := RequestValue("Please enter the password for your SSH key:", true)
+            if err != nil {
+              return nil, err
+            }
+
+            return []byte(passphrase), nil
+          })
+
+          if err != nil {
+            return nil, err
+          }
+        default:
+          return nil, err
+        }
+      }
+
+      if id.Identity == nil {
+        return nil, fmt.Errorf("Unknown identity at index %x of list", i)
+      }
     }
 
     stanza.unwrapKeyShare(id)

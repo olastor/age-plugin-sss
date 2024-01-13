@@ -51,7 +51,7 @@ shares:
 
 In this case, the file key will be split into three shares, each of which will be encrypted with one of the three recipients in the `shares` array. The `threshold` specifies how many of the shares are required to decrypt the file again. For our example, any two identities that correspond to a recipient in the list will suffice.
 
-You can not only use native age recipients (see below how to handle passwords), but also plugin recipients! SSH recipients are not supported [yet](https://github.com/olastor/age-plugin-sss/issues/1).
+You can not only use native age recipients (see below how to handle passwords), but also plugin or SSH recipients.
 
 Next, generate a new recipient from this policy file:
 
@@ -95,23 +95,6 @@ it works
 
 ### Advanced Usage
 
-#### Passwords
-
-Let's say you want to split the encryption key into shares wrapped by different passwords. As there is no recipient string you can generate, you must provide a special keyword of the form `password-<name-or-slug>`, e.g.
-
-```yaml
-threshold: 3
-shares:
-  - password-alice
-  - password-bob
-  - password-chris
-```
-
-The plugin will ask you for each password upon encryption. Please notice that
-
-- the name/slug is required, but it is not persisted in the encrypted file. It's only there for you to not confuse passwords when interacting with the cli.
-- the name/slug is mandatory for encryption, but optional for decryption (as the plugin will try all password stanzas until it finds the correct one). So having one or multiple identities named `password` is fine.
-
 #### (More) Complex Policies
 
 Let's say you want to encrypt a file so that in addition to your X25519 identity you also need one of two fido2 keys for decryption. This can be achived by adding a nested policy in one of the shares as such:
@@ -149,6 +132,51 @@ identities:
   - share_id: 3
     identity: AGE-PLUGIN-FIDO2-HMAC-1VE5KGMEJ945X6CTRM2TF76
 ```
+
+#### SSH Recipients/Identities
+
+It's also possible to include an SSH public key in a policy and an SSH private key in an identity. Make sure to use YAML's multi-line string formatting for the identity.
+
+**Example:**
+
+```yaml
+# recipient.yaml
+threshold: 1
+shares:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL84xOFSWXIcAeQK8CJ0qvHojdFZDuLGRe5FPg4aM3kY testing@local
+```
+
+```
+# identity.yaml
+identities:
+  - |
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+    QyNTUxOQAAACC/OMThUllyHAHkCvAidKrx6I3RWQ7ixkXuRT4OGjN5GAAAAKCxGCybsRgs
+    mwAAAAtzc2gtZWQyNTUxOQAAACC/OMThUllyHAHkCvAidKrx6I3RWQ7ixkXuRT4OGjN5GA
+    AAAEBqlzBxbT+cd7xs19UN6ZFKG2bb4vtoR6/7FHt7yJ4DZ784xOFSWXIcAeQK8CJ0qvHo
+    jdFZDuLGRe5FPg4aM3kYAAAAGnNlYmFzdGlhbkBmZWRvcmEuZnJpdHouYm94AQID
+    -----END OPENSSH PRIVATE KEY-----
+```
+
+If the private key is passphrase protected, you will be prompted for the password, **but only if the encrypted private key contains the public key**. Otherwise, you'll need to create a version of your private key that is not passphrase encrypted (see [here](https://stackoverflow.com/a/112409)). This issue is tracked in [#3](https://github.com/olastor/age-plugin-sss/issues/3)
+
+#### Passwords
+
+Let's say you want to split the encryption key into shares wrapped by different passwords. As there is no recipient string you can generate, you must provide a special keyword of the form `password-<name-or-slug>`, e.g.
+
+```yaml
+threshold: 3
+shares:
+  - password-alice
+  - password-bob
+  - password-chris
+```
+
+The plugin will ask you for each password upon encryption. Please notice that
+
+- the name/slug is required, but it is not persisted in the encrypted file. It's only there for you to not confuse passwords when interacting with the cli.
+- the name/slug is mandatory for encryption, but optional for decryption (as the plugin will try all password stanzas until it finds the correct one). So having one or multiple identities named `password` is fine.
 
 #### Converting recipients/identities back to YAML
 
