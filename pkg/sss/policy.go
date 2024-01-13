@@ -121,7 +121,7 @@ func (policy *SSS) Wrap(fileKey []byte) (stanza *SSSStanza, err error) {
     if err != nil {
       return nil, err
     }
-	case strings.HasPrefix(policy.Recipient, "age1") && strings.Count(policy.Recipient, "1") > 1:
+  case strings.HasPrefix(policy.Recipient, "age1") && strings.Count(policy.Recipient, "1") > 1:
     pluginRecipient, err := plugin.NewRecipient(policy.Recipient, PluginTerminalUIProxy)
     if err != nil {
       return nil, err
@@ -131,7 +131,7 @@ func (policy *SSS) Wrap(fileKey []byte) (stanza *SSSStanza, err error) {
     if err != nil {
       return nil, err
     }
-	case strings.HasPrefix(policy.Recipient, "age1"):
+  case strings.HasPrefix(policy.Recipient, "age1"):
     x25519Recipient, err := age.ParseX25519Recipient(policy.Recipient)
     if err != nil {
       return nil, err
@@ -141,7 +141,7 @@ func (policy *SSS) Wrap(fileKey []byte) (stanza *SSSStanza, err error) {
     if err != nil {
       return nil, err
     }
-	case strings.HasPrefix(policy.Recipient, "ssh-"):
+  case strings.HasPrefix(policy.Recipient, "ssh-"):
     sshRecipient, err := agessh.ParseRecipient(policy.Recipient)
     if err != nil {
       return nil, err
