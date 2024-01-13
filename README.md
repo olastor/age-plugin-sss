@@ -146,7 +146,7 @@ shares:
   - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL84xOFSWXIcAeQK8CJ0qvHojdFZDuLGRe5FPg4aM3kY testing@local
 ```
 
-```
+```yaml
 # identity.yaml
 identities:
   - |
@@ -159,7 +159,7 @@ identities:
     -----END OPENSSH PRIVATE KEY-----
 ```
 
-If the private key is passphrase protected, you will be prompted for the password, **but only if the encrypted private key contains the public key**. Otherwise, you'll need to create a version of your private key that is not passphrase encrypted (see [here](https://stackoverflow.com/a/112409)). This issue is tracked in [#3](https://github.com/olastor/age-plugin-sss/issues/3)
+If the private key is passphrase-protected, you will be prompted for the password, **but only if the encrypted private key contains the public key**. Otherwise, you'll need to create a version of your private key that is not passphrase encrypted (see [here](https://stackoverflow.com/a/112409)). This issue is tracked in [#3](https://github.com/olastor/age-plugin-sss/issues/3).
 
 #### Passwords
 
