@@ -171,11 +171,19 @@ func SendCommand(command string, body []byte, waitForOk bool) error {
     // send data in b64 while respecting the max column size of 64
     buf := bytes.NewBuffer(body)
     for ;; {
-      if buf.Len() == 0 {
+      bufLen := buf.Len()
+      if bufLen == 0 {
         break
       }
       line := buf.Next(48)
       os.Stdout.WriteString(b64.EncodeToString(line) + "\n")
+
+      if bufLen == 48 {
+        // This additional newline if the last buffer fills out the enitire column size is important!
+        // If it's not there, the controller doesn't know that the body ended, expects a new line, and
+        // gets stuck as a result.
+        os.Stdout.WriteString("\n")
+      }
     }
   }
 
