@@ -62,7 +62,7 @@ jobs:
         export GOBIN="$HOME/.local/bin/"
         go install github.com/rogpeppe/go-internal/cmd/testscript@v1.12.0
         go install filippo.io/age/cmd/...@latest
-        cp age-plugin-sss "$HOME/.local/bin/age-plugin-sss"
+        cp age-plugin-sss/age-plugin-sss "$HOME/.local/bin/age-plugin-sss"
         testscript ./testdata/*.txt
 
     - name: Upload workflow artifacts
