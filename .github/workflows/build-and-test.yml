@@ -57,7 +57,7 @@ jobs:
         GOARM: ${{ matrix.GOARM }}
 
     - name: Test E2E
-      if: env.GOOS == 'linux' && env.GOARCH == 'amd64'
+      if: matrix.GOOS == 'linux' && matrix.GOARCH == 'amd64'
       run: |
         export GOBIN="$HOME/.local/bin/"
         go install github.com/rogpeppe/go-internal/cmd/testscript@v1.12.0
