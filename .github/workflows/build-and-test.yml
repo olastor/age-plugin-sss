@@ -60,11 +60,12 @@ jobs:
       if: matrix.GOOS == 'linux' && matrix.GOARCH == 'amd64'
       run: |
         export GOBIN="$HOME/.local/bin/"
+        go build -v ./cmd/...
         go install github.com/rogpeppe/go-internal/cmd/testscript@v1.12.0
         go install filippo.io/age/cmd/...@latest
-        tree .
-        cp age-plugin-sss/age-plugin-sss "$HOME/.local/bin/age-plugin-sss"
+        cp age-plugin-sss "$HOME/.local/bin/age-plugin-sss"
         testscript ./testdata/*.txt
+        rm age-plugin-sss
 
     - name: Upload workflow artifacts
       uses: actions/upload-artifact@v2
