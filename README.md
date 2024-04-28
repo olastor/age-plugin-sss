@@ -22,7 +22,21 @@
 
 ### Download/Install Binary
 
-Go to the [release page](https://github.com/olastor/age-plugin-sss/releases/) and download the correct binary for your architecture. Unpack it and move it to a directory in your `$PATH`.
+Download a the latest binary from the [release page](https://github.com/olastor/age-plugin-sss/releases). Copy the binary to your `$PATH` (preferably in `$(which age)`) and make sure it's executable.
+
+You can also use the following script for installation:
+
+- Installs binary to `~/.local/bin/age-plugin-sss` (change to your preferred directory)
+- Make sure to adjust `OS` and `ARCH` if needed (`OS=darwin ARCH=arm64` for Apple Silicon, `OS=darwin ARCH=amd64` for older Macs)
+
+```bash
+cd "$(mktemp -d)"
+VERSION=v0.2.4 OS=linux ARCH=amd64; curl -L "https://github.com/olastor/age-plugin-sss/releases/download/$VERSION/age-plugin-sss-$VERSION-$OS-$ARCH.tar.gz" -o age-plugin-sss.tar.gz
+tar -xzf age-plugin-sss.tar.gz
+mv age-plugin-sss/age-plugin-sss ~/.local/bin
+```
+
+Please note that Windows builds are currently not enabled, but if you need them please open a new issue and I'll try to look into it.
 
 ### Build from source
 
