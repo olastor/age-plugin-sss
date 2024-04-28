@@ -4,7 +4,7 @@ on:
   release:
     types: [ "published" ]
   push:
-    branches: [ "main" ]
+    branches: [ "main", "fix-multi-arch-build" ]
   pull_request:
     branches: [ "main" ]
 
@@ -29,11 +29,6 @@ jobs:
       with:
         go-version: '1.21'
 
-    - name: Build
-      run: |
-        VERSION="$(git describe --tags --always)"
-        go build -ldflags "-X main.Version=$VERSION" -v ./cmd/...
-
     - name: Test
       run: go test -v ./...
 
@@ -48,6 +43,7 @@ jobs:
     - name: Package
       run: |
         VERSION="$(git describe --tags --always)"
+        go build -ldflags "-X main.Version=$VERSION" -v ./cmd/...
         DIR="$(mktemp -d)"
         mkdir "$DIR/age-plugin-sss"
         cp LICENSE "$DIR/age-plugin-sss"
