@@ -62,6 +62,7 @@ jobs:
         export GOBIN="$HOME/.local/bin/"
         go install github.com/rogpeppe/go-internal/cmd/testscript@v1.12.0
         go install filippo.io/age/cmd/...@latest
+        tree .
         cp age-plugin-sss/age-plugin-sss "$HOME/.local/bin/age-plugin-sss"
         testscript ./testdata/*.txt
 
