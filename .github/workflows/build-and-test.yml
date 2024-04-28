@@ -8,6 +8,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  GO_VERSION: '>=1.21'
+  CGO_ENABLED: 1
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,7 +31,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
+        go-version: ${{ env.GO_VERSION }}
 
     - name: Test
       run: go test -v ./...
@@ -47,6 +51,7 @@ jobs:
           tar -cvzf "age-plugin-sss-$VERSION-$GOOS-$GOARCH.tar.gz" -C "$DIR" age-plugin-sss
         fi
       env:
+        CGO_ENABLED: ${{ env.CGO_ENABLED }}
         GOOS: ${{ matrix.GOOS }}
         GOARCH: ${{ matrix.GOARCH }}
         GOARM: ${{ matrix.GOARM }}
