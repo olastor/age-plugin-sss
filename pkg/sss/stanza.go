@@ -49,6 +49,12 @@ func (identityItem *SSSIdentityItem) UnmarshalYAML(unmarshal func(interface{}) e
 	return unmarshal((*newIdentityItem)(identityItem))
 }
 
+// some plugins don't seem to strictly follow the current spec
+var CUSTOM_IDENITIY_STANZA_MAPPING = map[string]string{
+	"yubikey": "piv-p256",
+	"se":      "piv-p256",
+}
+
 func (stanza *SSSStanza) setShareIds() {
 	var lastId int
 	stanza.setShareIdsRec(&lastId)
@@ -198,13 +204,21 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 
 			if id.ShareId == 0 {
 				// find the matching stanza
-				shareIds := remainingStanzaIdsByType[strings.ToLower(id.Identity.(*plugin.Identity).Name())]
+				identityNameLower := strings.ToLower(id.Identity.(*plugin.Identity).Name())
+				shareIds := remainingStanzaIdsByType[identityNameLower]
+
+				if CUSTOM_IDENITIY_STANZA_MAPPING[identityNameLower] != "" {
+					shareIds = remainingStanzaIdsByType[CUSTOM_IDENITIY_STANZA_MAPPING[identityNameLower]]
+				} else if remainingStanzaIdsByType["x25519"] != nil {
+					// "A plugin MAY support decrypting files encrypted to native age recipients, by including support for the x25519 recipient stanza."
+					shareIds = append(shareIds, remainingStanzaIdsByType["x25519"]...)
+				}
+
 				if len(shareIds) == 1 {
 					id.ShareId = shareIds[0]
 				} else {
 					selectedId, err := stanza.getUserSelectedShareId(i, func(shareId int) string {
-						// if there are no matching types, show all remaining ids
-						if len(shareIds) > 0 && !slices.Contains(shareIds, shareId) {
+						if !slices.Contains(shareIds, shareId) {
 							// plugins could handle different types of stanzas
 							return ""
 						}
@@ -214,6 +228,10 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 
 					if err != nil {
 						return nil, err
+					}
+
+					if !slices.Contains(shareIds, selectedId) {
+						return nil, errors.New("Invalid id selected")
 					}
 
 					id.ShareId = selectedId
