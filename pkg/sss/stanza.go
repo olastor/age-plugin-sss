@@ -203,7 +203,8 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 					id.ShareId = shareIds[0]
 				} else {
 					selectedId, err := stanza.getUserSelectedShareId(i, func(shareId int) string {
-						if !slices.Contains(shareIds, shareId) {
+						// if there are no matching types, show all remaining ids
+						if len(shareIds) > 0 && !slices.Contains(shareIds, shareId) {
 							// plugins could handle different types of stanzas
 							return ""
 						}
@@ -213,10 +214,6 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 
 					if err != nil {
 						return nil, err
-					}
-
-					if !slices.Contains(shareIds, selectedId) {
-						return nil, errors.New("Invalid id selected")
 					}
 
 					id.ShareId = selectedId
@@ -274,7 +271,7 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 }
 
 func (stanza *SSSStanza) getUserSelectedShareId(identityIndex int, printIdFn PrintIdFunction) (selectedId int, err error) {
-	message := fmt.Sprintf("\n\nEncountered multiple options for identity #%x.", identityIndex+1)
+	message := fmt.Sprintf("\n\nEncountered multiple options for identity #%d.", identityIndex+1)
 	message += "\n\n" + stanza.getTreeAsString(0, printIdFn) + "\n"
 
 	err = controller.SendCommand("msg", []byte(message), true)
