@@ -14,6 +14,53 @@ import (
 
 var Version string
 
+const USAGE = `Usage:
+  age-plugin-sss --generate-recipient <YAML policy file>
+  age-plugin-sss --generate-identity <YAML identities file>
+  age-plugin-sss --inspect <encrypte file>
+  echo <recipient or identity string> | age-plugin-sss --decode
+
+Options:
+    --generate-recipient <PATH>   Generate an recipient from a YAML policy file.
+    --generate-identity <PATH>    Generate an identity from a YAML file.
+    --inspect <PATH>              Display the policy structure of an encrypted file.
+    -x, --decode                  Decode recipient or identity from STDIN back to YAML.
+    -v, --version                 Show the version.
+    -h, --help                    Show this help message.
+
+Examples:
+
+(Encryption)
+
+  $ cat <<EOF > policy.yaml
+threshold: 2
+shares:
+  - age1q4ser2a5lu7ylu76ld07g2mn58sx5tqmtagmrucpdgcvv6zzyfds6ajx7z
+  - age1u9pucxxkr9fh37e65wxf9nzf49pusq4ud9thd2m9xw5dxscdzg8sagm0jk
+  # deep nesting and t=1 are possible
+  - threshold: 1
+    shares:
+      - age1qdwjfqukwc0e0p6yg8k392t22ewkfgy9nttrl3hqm0zcmsswcqsqtg3uyn
+      - age13csecsv5298ww6q5ky9n02heumdjxnekkvr8v64azaq5c3ps299qxupkqz
+EOF
+  $ age-plugin-sss --generate-recipient policy.yaml > recipient.txt
+  $ echo 'secret' | age -R recipient.txt -o secret.enc
+
+
+(Decryption)
+
+  $ cat <<EOF > identity.yaml
+# list of enough (not all) identities to meet the root threshold
+identities:
+  - AGE-SECRET-KEY-1E7T...
+  # you can pin the identity to a specific share id (identifies the matching recipient node/leaf)
+  # share ids are shown when using the --inspect flag on an encrypted file
+  - share_id: 3
+    identity: AGE-SECRET-KEY-1E7T
+EOF
+  $ age-plugin-sss --generate-identity identity.yaml > identity.txt
+  $ age -d -i identity.txt secret.enc`
+
 func main() {
 	var (
 		pluginFlag            string
@@ -25,14 +72,16 @@ func main() {
 		versionFlag           bool
 	)
 
-	flag.StringVar(&pluginFlag, "age-plugin", "", "Used by age for interacting with the plugin.")
-	flag.StringVar(&inspectFlag, "inspect", "", "Display the policy structure of `ENCRYPTED_FILE`.")
-	flag.StringVar(&generateRecipientFlag, "generate-recipient", "", "Generate a recipient from a YAML policy stored in `FILE`.")
-	flag.StringVar(&generateIdentityFlag, "generate-identity", "", "Generate an identity from a YAML policy stored in `FILE`.")
-	flag.BoolVar(&decodeFlag, "decode", false, "Decode recipient or identity from STDIN back to YAML.")
-	flag.BoolVar(&versionFlag, "v", false, "Show the version.")
-	flag.BoolVar(&helpFlag, "h", false, "Show this help message.")
-	flag.BoolVar(&helpFlag, "help", false, "Show this help message.")
+	flag.Usage = func() { fmt.Fprintf(os.Stderr, "%s\n", USAGE) }
+	flag.StringVar(&pluginFlag, "age-plugin", "", "")
+	flag.StringVar(&inspectFlag, "inspect", "", "")
+	flag.StringVar(&generateRecipientFlag, "generate-recipient", "", "")
+	flag.StringVar(&generateIdentityFlag, "generate-identity", "", "")
+	flag.BoolVar(&decodeFlag, "x", false, "")
+	flag.BoolVar(&decodeFlag, "decode", false, "")
+	flag.BoolVar(&versionFlag, "v", false, "")
+	flag.BoolVar(&helpFlag, "h", false, "")
+	flag.BoolVar(&helpFlag, "help", false, "")
 
 	flag.Parse()
 
