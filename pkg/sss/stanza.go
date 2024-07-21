@@ -233,7 +233,7 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 				return nil, err
 			}
 		case strings.HasPrefix(id.IdentityStr, "AGE-PLUGIN-"):
-			id.Identity, err = plugin.NewIdentity(id.IdentityStr, PluginTerminalUIProxy)
+			id.Identity, err = plugin.NewIdentity(id.IdentityStr, getPluginClientUIProxy(stanza.Plugin))
 			if err != nil {
 				return nil, err
 			}
