@@ -2,9 +2,10 @@ package main
 
 import (
 	"bufio"
+	"filippo.io/age"
+	page "filippo.io/age/plugin"
 	"flag"
 	"fmt"
-	"github.com/olastor/age-plugin-controller/pkg/controller"
 	"github.com/olastor/age-plugin-sss/pkg/sss"
 	"gopkg.in/yaml.v3"
 	"log"
@@ -91,17 +92,51 @@ func main() {
 	}
 
 	if pluginFlag == "recipient-v1" {
-		if err := sss.RecipientV1(); err != nil {
-			controller.SendCommand("error", []byte(err.Error()), false)
+		p, err := page.New("sss")
+		if err != nil {
 			os.Exit(1)
+		}
+		p.HandleRecipient(func(data []byte) (age.Recipient, error) {
+			r, err := sss.ParseRecipient(page.EncodeRecipient("sss", data))
+
+			var addPlugin func(s *sss.SSS)
+			addPlugin = func(s *sss.SSS) {
+				s.Plugin = p
+				if s.Shares != nil {
+					for _, ss := range s.Shares {
+						addPlugin(ss)
+					}
+				}
+			}
+
+			addPlugin(r)
+
+			if err != nil {
+				return nil, err
+			}
+			return r, nil
+		})
+		if exitCode := p.RecipientV1(); exitCode != 0 {
+			os.Exit(exitCode)
 		}
 		os.Exit(0)
 	}
 
 	if pluginFlag == "identity-v1" {
-		if err := sss.IdentityV1(); err != nil {
-			controller.SendCommand("error", []byte(err.Error()), false)
+		p, err := page.New("sss")
+		if err != nil {
 			os.Exit(1)
+		}
+		p.HandleIdentity(func(data []byte) (age.Identity, error) {
+			i, err := sss.ParseIdentity(page.EncodeIdentity("sss", data))
+			i.Plugin = p
+			if err != nil {
+				return nil, err
+			}
+			return i, nil
+		})
+		if exitCode := p.IdentityV1(); exitCode != 0 {
+			os.Exit(exitCode)
 		}
 		os.Exit(0)
 	}

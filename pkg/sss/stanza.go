@@ -7,7 +7,6 @@ import (
 	"filippo.io/age/plugin"
 	"fmt"
 	"github.com/hashicorp/vault/shamir"
-	"github.com/olastor/age-plugin-controller/pkg/controller"
 	"golang.org/x/crypto/ssh"
 	"slices"
 	"sort"
@@ -25,6 +24,8 @@ type SSSStanza struct {
 	// exclude from stanza data, only used for decryption
 	ShareId  int    `json:"-"`
 	KeyShare []byte `json:"-"`
+
+	Plugin *plugin.Plugin `json:"-"`
 }
 
 type SSSIdentityItem struct {
@@ -35,6 +36,41 @@ type SSSIdentityItem struct {
 
 type SSSIdentity struct {
 	Identities []*SSSIdentityItem `yaml:"identities" json:"ids"`
+	Plugin     *plugin.Plugin     `yaml:"-"          json:"-"`
+}
+
+func (i *SSSIdentity) Unwrap(stanzas []*age.Stanza) ([]byte, error) {
+	for _, stanza := range stanzas {
+		if stanza.Type != "sss" {
+			continue
+		}
+
+		stanzaParsed, err := ParseStanza(stanza.Body)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing stanza: %s", err)
+		}
+
+		if i.Plugin != nil {
+			var addPlugin func(s *SSSStanza)
+			addPlugin = func(s *SSSStanza) {
+				s.Plugin = i.Plugin
+				if s.Shares != nil {
+					for _, ss := range s.Shares {
+						addPlugin(ss)
+					}
+				}
+			}
+
+			addPlugin(stanzaParsed)
+		}
+
+		fileKey, err := stanzaParsed.Unwrap(i)
+		if fileKey != nil {
+			return fileKey, nil
+		}
+	}
+
+	return nil, age.ErrIncorrectIdentity
 }
 
 func (identityItem *SSSIdentityItem) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -187,7 +223,7 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 			}
 
 			// ask for the password
-			password, err := controller.RequestValue(msg, true)
+			password, err := stanza.Plugin.RequestValue(msg, true)
 			if err != nil {
 				return nil, err
 			}
@@ -255,7 +291,7 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 					}
 
 					id.Identity, err = agessh.NewEncryptedSSHIdentity(v.PublicKey, pemBytes, func() ([]byte, error) {
-						passphrase, err := controller.RequestValue("Please enter the password for your SSH key:", true)
+						passphrase, err := stanza.Plugin.RequestValue("Please enter the password for your SSH key:", true)
 						if err != nil {
 							return nil, err
 						}
@@ -292,12 +328,12 @@ func (stanza *SSSStanza) getUserSelectedShareId(identityIndex int, printIdFn Pri
 	message := fmt.Sprintf("\n\nEncountered multiple options for identity #%d.", identityIndex+1)
 	message += "\n\n" + stanza.getTreeAsString(0, printIdFn) + "\n"
 
-	err = controller.SendCommand("msg", []byte(message), true)
+	err = stanza.Plugin.DisplayMessage(message)
 	if err != nil {
 		return 0, err
 	}
 
-	selectedIdStr, err := controller.RequestValue("Please choose the share id to use:", false)
+	selectedIdStr, err := stanza.Plugin.RequestValue("Please choose the share id to use:", false)
 	if err != nil {
 		return 0, err
 	}

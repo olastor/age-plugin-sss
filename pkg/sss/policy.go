@@ -7,14 +7,14 @@ import (
 	"filippo.io/age/plugin"
 	"fmt"
 	"github.com/hashicorp/vault/shamir"
-	"github.com/olastor/age-plugin-controller/pkg/controller"
 	"strings"
 )
 
 type SSS struct {
-	Threshold int    `yaml:"threshold,omitempty" json:"t,omitempty"`
-	Shares    []*SSS `yaml:"shares,omitempty"    json:"s,omitempty"`
-	Recipient string `yaml:"recipient,omitempty" json:"r,omitempty"`
+	Threshold int            `yaml:"threshold,omitempty" json:"t,omitempty"`
+	Shares    []*SSS         `yaml:"shares,omitempty"    json:"s,omitempty"`
+	Recipient string         `yaml:"recipient,omitempty" json:"r,omitempty"`
+	Plugin    *plugin.Plugin `yaml:"-"                   json:"-"`
 }
 
 func (policy *SSS) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -29,7 +29,26 @@ func (policy *SSS) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*newPolicy)(policy))
 }
 
-func (policy *SSS) Wrap(fileKey []byte) (stanza *SSSStanza, err error) {
+func (policy *SSS) Wrap(fileKey []byte) (stanza []*age.Stanza, err error) {
+	sssStanza, err := policy.wrap(fileKey)
+	if err != nil {
+		return nil, err
+	}
+
+	stanzaBody, err := sssStanza.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	return []*age.Stanza{
+		&age.Stanza{
+			Type: "sss",
+			Body: stanzaBody,
+		},
+	}, nil
+}
+
+func (policy *SSS) wrap(fileKey []byte) (stanza *SSSStanza, err error) {
 	stanza = &SSSStanza{}
 	stanza.Version = 1
 
@@ -67,7 +86,7 @@ func (policy *SSS) Wrap(fileKey []byte) (stanza *SSSStanza, err error) {
 				shareWithoutX[i] = fileKeyShare[i]
 			}
 
-			subStanza, err := policy.Shares[i].Wrap(shareWithoutX)
+			subStanza, err := policy.Shares[i].wrap(shareWithoutX)
 			if err != nil {
 				return nil, err
 			}
@@ -97,12 +116,12 @@ func (policy *SSS) Wrap(fileKey []byte) (stanza *SSSStanza, err error) {
 		}
 
 		passwordId := policy.Recipient[9:]
-		password, err := controller.RequestValue(fmt.Sprintf("Please enter password \"%s\":", passwordId), true)
+		password, err := policy.Plugin.RequestValue(fmt.Sprintf("Please enter password \"%s\":", passwordId), true)
 		if err != nil {
 			return nil, err
 		}
 
-		password2, err := controller.RequestValue(fmt.Sprintf("Please confirm password \"%s\":", passwordId), true)
+		password2, err := policy.Plugin.RequestValue(fmt.Sprintf("Please confirm password \"%s\":", passwordId), true)
 		if err != nil {
 			return nil, err
 		}
