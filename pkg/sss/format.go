@@ -5,13 +5,13 @@ import (
 	"filippo.io/age/plugin"
 	"fmt"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 )
 
 func ParsePolicyFromYamlFile(filePath string) (policy *SSS, err error) {
-	yamlFile, err := ioutil.ReadFile(filePath)
+	yamlFile, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func ParsePolicyFromYamlFile(filePath string) (policy *SSS, err error) {
 }
 
 func ParseIdentityFromYamlFile(filePath string) (identity *SSSIdentity, err error) {
-	yamlFile, err := ioutil.ReadFile(filePath)
+	yamlFile, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func ParseStanza(stanzaData []byte) (stanza *SSSStanza, err error) {
 }
 
 func InspectFileHeader(filePath string) error {
-	encryptedFile, err := ioutil.ReadFile(filePath)
+	encryptedFile, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
