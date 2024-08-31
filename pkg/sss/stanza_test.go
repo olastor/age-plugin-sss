@@ -19,7 +19,7 @@ func TestStanzaFormat(t *testing.T) {
 		t.Error("Failed decoding")
 	}
 
-	stanza, err := policy.Wrap(wrapKey)
+	stanza, err := policy.wrap(wrapKey)
 	if err != nil {
 		t.Error("Failed creating stanza")
 	}

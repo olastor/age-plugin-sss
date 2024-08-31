@@ -16,7 +16,7 @@ cmp stdout input
 
 ! exec age -d -i identity-fail.txt test.age
 ! cmp stdout input
-stderr 'failed unwrap less than two parts cannot be used to reconstruct the secret'
+stderr 'no identity matched any of the recipients'
 
 -- input --
 it works
