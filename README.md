@@ -43,7 +43,7 @@ Please note that Windows builds are currently not enabled, but if you need them 
 Alternatively the plugin can be built from source. Simply run
 
 ```bash
-go build -v ./cmd/...
+make build
 ```
 and copy the binary `age-plugin-sss` to a directory of your `$PATH`.
 
