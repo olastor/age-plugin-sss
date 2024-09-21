@@ -68,7 +68,7 @@ jobs:
         rm age-plugin-sss
 
     - name: Upload workflow artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: plugin-binaries
         path: age-plugin-sss*
@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download workflow artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: plugin-binaries
       - name: Upload release artifacts
