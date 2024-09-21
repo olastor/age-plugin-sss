@@ -70,7 +70,7 @@ jobs:
     - name: Upload workflow artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: 'plugin-binaries-${{ matrix.GOOS }}'
+        name: 'plugin-binaries-${{ matrix.GOOS }}-${{ matrix.GOARCH }}'
         path: age-plugin-sss*
 
   release:
