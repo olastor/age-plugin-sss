@@ -70,7 +70,7 @@ jobs:
     - name: Upload workflow artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: plugin-binaries
+        name: 'plugin-binaries-${{ matrix.GOOS }}'
         path: age-plugin-sss*
 
   release:
@@ -84,7 +84,7 @@ jobs:
       - name: Download workflow artifacts
         uses: actions/download-artifact@v4
         with:
-          name: plugin-binaries
+          pattern: plugin-binaries-*
       - name: Upload release artifacts
         run: gh release upload "$GITHUB_REF_NAME" age-plugin-sss*
         env:
