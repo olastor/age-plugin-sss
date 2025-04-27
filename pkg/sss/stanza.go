@@ -129,6 +129,10 @@ func (stanza *SSSStanza) recoverSecret() (fileKey []byte, err error) {
 		}
 	}
 
+	if len(shares) < stanza.Threshold {
+		return nil, fmt.Errorf("not enough shares")
+	}
+
 	return shamir.Combine(shares)
 }
 
