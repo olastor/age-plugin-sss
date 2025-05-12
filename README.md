@@ -31,7 +31,7 @@ You can also use the following script for installation:
 
 ```bash
 cd "$(mktemp -d)"
-VERSION=v0.2.5 OS=linux ARCH=amd64; curl -L "https://github.com/olastor/age-plugin-sss/releases/download/$VERSION/age-plugin-sss-$VERSION-$OS-$ARCH.tar.gz" -o age-plugin-sss.tar.gz
+VERSION=v0.3.0 OS=linux ARCH=amd64; curl -L "https://github.com/olastor/age-plugin-sss/releases/download/$VERSION/age-plugin-sss-$VERSION-$OS-$ARCH.tar.gz" -o age-plugin-sss.tar.gz
 tar -xzf age-plugin-sss.tar.gz
 mv age-plugin-sss/age-plugin-sss ~/.local/bin
 ```
