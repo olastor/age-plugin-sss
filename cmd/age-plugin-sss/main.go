@@ -18,7 +18,7 @@ var Version string
 const USAGE = `Usage:
   age-plugin-sss --generate-recipient <YAML policy file>
   age-plugin-sss --generate-identity <YAML identities file>
-  age-plugin-sss --inspect <encrypte file>
+  age-plugin-sss --inspect <encrypted file>
   echo <recipient or identity string> | age-plugin-sss --decode
 
 Options:
