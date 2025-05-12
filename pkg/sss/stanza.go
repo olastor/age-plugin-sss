@@ -379,6 +379,14 @@ func (stanza *SSSStanza) getTreeAsString(indent int, printIdFn PrintIdFunction) 
 				stanzaType = fmt.Sprintf("sss (t=%x)", share.Threshold)
 			}
 
+			// TODO: the formatting lacks '|' lines in nesting, e.g.
+			// sss (t=2)
+			//  ├─ piv-p256
+			//  ├─ sss (t=2)
+			//      ├─ x25519 [id=2]
+			//      └─ x25519 [id=3]
+			//  └─ x25519 [id=4]
+
 			tree += fmt.Sprintf("%s%s %s%s\n", strings.Repeat(" ", line_indent+indent), box_char, stanzaType, id)
 
 			if share.Shares != nil {
