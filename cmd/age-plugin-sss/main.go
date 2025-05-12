@@ -81,6 +81,7 @@ func main() {
 	flag.BoolVar(&decodeFlag, "x", false, "")
 	flag.BoolVar(&decodeFlag, "decode", false, "")
 	flag.BoolVar(&versionFlag, "v", false, "")
+	flag.BoolVar(&versionFlag, "version", false, "")
 	flag.BoolVar(&helpFlag, "h", false, "")
 	flag.BoolVar(&helpFlag, "help", false, "")
 
