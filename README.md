@@ -1,6 +1,7 @@
 # age-plugin-sss
 
-⚠️ Consider this plugin to be experimental until the version v1.0.0 is published! Open for feedback and improvements. ⚠️
+> [!WARNING]
+> Consider this plugin to be experimental until the version v1.0.0 is published! Open for feedback and improvements.
 
 ---
 
