@@ -13,8 +13,24 @@ env:
   CGO_ENABLED: 0
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v9
+      with:
+        version: latest
+
   build:
     runs-on: ubuntu-latest
+    needs: lint
     strategy:
       matrix:
         include:

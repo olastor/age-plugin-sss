@@ -72,8 +72,7 @@ func selectIdentities(node *TestPolicy, rng *rand.Rand, mode int) []*age.X25519I
 func testPolicyToIdentity(rng *rand.Rand, testPolicy *TestPolicy, mode int) *SSSIdentity {
 	identities := []*age.X25519Identity{}
 
-	var pickIdentities func(node *TestPolicy)
-	pickIdentities = func(node *TestPolicy) {
+	var pickIdentities = func(node *TestPolicy) {
 		if node.Threshold == 0 {
 			identities = append(identities, node.Identity)
 			return

@@ -47,7 +47,7 @@ func (i *SSSIdentity) Unwrap(stanzas []*age.Stanza) ([]byte, error) {
 
 		stanzaParsed, err := ParseStanza(stanza.Body)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing stanza: %s", err)
+			return nil, fmt.Errorf("could not parse stanza: %s", err)
 		}
 
 		if i.Plugin != nil {
@@ -64,7 +64,7 @@ func (i *SSSIdentity) Unwrap(stanzas []*age.Stanza) ([]byte, error) {
 			addPlugin(stanzaParsed)
 		}
 
-		fileKey, err := stanzaParsed.Unwrap(i)
+		fileKey, _ := stanzaParsed.Unwrap(i)
 		if fileKey != nil {
 			return fileKey, nil
 		}
@@ -271,7 +271,7 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 					}
 
 					if !slices.Contains(shareIds, selectedId) {
-						return nil, errors.New("Invalid id selected")
+						return nil, errors.New("invalid id selected")
 					}
 
 					id.ShareId = selectedId
@@ -312,7 +312,7 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 			}
 
 			if id.Identity == nil {
-				return nil, fmt.Errorf("Unknown identity at index %x of list", i)
+				return nil, fmt.Errorf("unknown identity at index %x of list", i)
 			}
 		}
 
@@ -399,7 +399,7 @@ func (stanza *SSSStanza) getTreeAsString(indent int, printIdFn PrintIdFunction) 
 }
 
 func (stanza *SSSStanza) PrintTree() {
-	fmt.Printf(stanza.getTreeAsString(0, func(shareId int) string {
+	fmt.Print(stanza.getTreeAsString(0, func(shareId int) string {
 		return fmt.Sprintf(" [id=%x]", shareId)
 	}))
 }

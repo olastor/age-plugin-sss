@@ -2,12 +2,13 @@ package sss
 
 import (
 	"errors"
+	"fmt"
+	"strings"
+
 	"filippo.io/age"
 	"filippo.io/age/agessh"
 	"filippo.io/age/plugin"
-	"fmt"
 	"github.com/hashicorp/vault/shamir"
-	"strings"
 )
 
 type SSS struct {
@@ -41,7 +42,7 @@ func (policy *SSS) Wrap(fileKey []byte) (stanza []*age.Stanza, err error) {
 	}
 
 	return []*age.Stanza{
-		&age.Stanza{
+		{
 			Type: "sss",
 			Body: stanzaBody,
 		},
@@ -54,7 +55,7 @@ func (policy *SSS) wrap(fileKey []byte) (stanza *SSSStanza, err error) {
 
 	if policy.Shares != nil {
 		if policy.Threshold <= 0 {
-			return nil, errors.New("Invalid threshold")
+			return nil, errors.New("invalid threshold")
 		}
 
 		var fileKeyShares [][]byte

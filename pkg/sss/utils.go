@@ -3,7 +3,7 @@ package sss
 import (
 	"bytes"
 	"compress/gzip"
-	"io/ioutil"
+	"io"
 )
 
 func compress(rawData []byte) (compressedData []byte, err error) {
@@ -29,7 +29,7 @@ func decompress(compressedData []byte) (rawData []byte, err error) {
 		return nil, err
 	}
 
-	rawData, err = ioutil.ReadAll(gzipReader)
+	rawData, err = io.ReadAll(gzipReader)
 	if err != nil {
 		return nil, err
 	}
