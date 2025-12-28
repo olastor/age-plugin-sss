@@ -2,12 +2,14 @@ package sss
 
 import (
 	"encoding/json"
-	"filippo.io/age/plugin"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"regexp"
 	"strings"
+
+	"filippo.io/age"
+	"filippo.io/age/plugin"
+	"gopkg.in/yaml.v3"
 )
 
 func ParsePolicyFromYamlFile(filePath string) (policy *SSS, err error) {
@@ -137,14 +139,19 @@ func ParseStanza(stanzaData []byte) (stanza *SSSStanza, err error) {
 }
 
 func InspectFileHeader(filePath string) error {
-	encryptedFile, err := os.ReadFile(filePath)
+	encryptedFile, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+
+	encryptedFileHeader, err := age.ExtractHeader(encryptedFile)
 	if err != nil {
 		return err
 	}
 
 	re := regexp.MustCompile(`-> sss\n[^>]+`)
 
-	stanzas := re.FindAll(encryptedFile, -1)
+	stanzas := re.FindAll(encryptedFileHeader, -1)
 
 	if stanzas == nil {
 		fmt.Println("No sss stanzas found.")
