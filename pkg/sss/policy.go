@@ -141,6 +141,16 @@ func (policy *SSS) wrap(fileKey []byte) (stanza *SSSStanza, err error) {
 		if err != nil {
 			return nil, err
 		}
+	case strings.HasPrefix(policy.Recipient, "age1pq1"):
+		hybridRecipient, err := age.ParseHybridRecipient(policy.Recipient)
+		if err != nil {
+			return nil, err
+		}
+
+		wrappedShare, err = hybridRecipient.Wrap(fileKey)
+		if err != nil {
+			return nil, err
+		}
 	case strings.HasPrefix(policy.Recipient, "age1") && strings.Count(policy.Recipient, "1") > 1:
 		pluginRecipient, err := plugin.NewRecipient(policy.Recipient, getPluginClientUIProxy(policy.Plugin))
 		if err != nil {

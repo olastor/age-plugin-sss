@@ -87,8 +87,19 @@ func (identityItem *SSSIdentityItem) UnmarshalYAML(unmarshal func(interface{}) e
 
 // some plugins don't seem to strictly follow the current spec
 var CUSTOM_IDENITIY_STANZA_MAPPING = map[string]string{
-	"yubikey": "piv-p256",
+	"yubikey": "piv-p256", // legacy, newer version uses tagged recipients
 	"se":      "piv-p256",
+}
+
+// NATIVE_RECIPIENT_STANZAS are the native age recipient types that plugins MAY
+// support decrypting alongside their own stanzas. scrypt excluded as it MUST be
+// the only stanza in the header per the spec.
+// https://github.com/C2SP/C2SP/blob/main/age.md#native-recipient-types
+var NATIVE_RECIPIENT_STANZAS = []string{
+	"x25519",
+	"mlkem768x25519",
+	"p256tag",
+	"mlkem768p256tag",
 }
 
 func (stanza *SSSStanza) setShareIds() {
@@ -200,6 +211,8 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 		switch item.(type) {
 		case *age.X25519Identity:
 			return 1
+		case *age.HybridIdentity:
+			return 1
 		case *plugin.Identity:
 			return 3
 		case *age.ScryptIdentity:
@@ -243,15 +256,20 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 			}
 
 			if id.ShareId == 0 {
-				// find the matching stanza
+				// find the matching stanzas
 				identityNameLower := strings.ToLower(id.Identity.(*plugin.Identity).Name())
 				shareIds := remainingStanzaIdsByType[identityNameLower]
 
-				if CUSTOM_IDENITIY_STANZA_MAPPING[identityNameLower] != "" {
-					shareIds = remainingStanzaIdsByType[CUSTOM_IDENITIY_STANZA_MAPPING[identityNameLower]]
-				} else if remainingStanzaIdsByType["x25519"] != nil {
-					// "A plugin MAY support decrypting files encrypted to native age recipients, by including support for the x25519 recipient stanza."
-					shareIds = append(shareIds, remainingStanzaIdsByType["x25519"]...)
+				customStanzaType := CUSTOM_IDENITIY_STANZA_MAPPING[identityNameLower]
+				if customStanzaType != "" {
+					shareIds = append(shareIds, remainingStanzaIdsByType[customStanzaType]...)
+				}
+
+				// "A plugin MAY support decrypting files encrypted to native age recipients"
+				for _, nativeType := range NATIVE_RECIPIENT_STANZAS {
+					if remainingStanzaIdsByType[nativeType] != nil {
+						shareIds = append(shareIds, remainingStanzaIdsByType[nativeType]...)
+					}
 				}
 
 				if len(shareIds) == 1 {
@@ -276,6 +294,11 @@ func (stanza *SSSStanza) Unwrap(identity *SSSIdentity) (data []byte, err error) 
 
 					id.ShareId = selectedId
 				}
+			}
+		case strings.HasPrefix(id.IdentityStr, "AGE-SECRET-KEY-PQ-1"):
+			id.Identity, err = age.ParseHybridIdentity(id.IdentityStr)
+			if err != nil {
+				return nil, err
 			}
 		case strings.HasPrefix(id.IdentityStr, "AGE-SECRET-KEY-1"):
 			id.Identity, err = age.ParseX25519Identity(id.IdentityStr)
