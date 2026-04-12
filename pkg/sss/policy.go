@@ -3,6 +3,7 @@ package sss
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"filippo.io/age"
@@ -31,7 +32,7 @@ func (policy *SSS) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (policy *SSS) Wrap(fileKey []byte) (stanza []*age.Stanza, err error) {
-	sssStanza, err := policy.wrap(fileKey)
+	sssStanza, _, err := policy.wrap(fileKey)
 	if err != nil {
 		return nil, err
 	}
@@ -49,13 +50,32 @@ func (policy *SSS) Wrap(fileKey []byte) (stanza []*age.Stanza, err error) {
 	}, nil
 }
 
-func (policy *SSS) wrap(fileKey []byte) (stanza *SSSStanza, err error) {
+func (policy *SSS) WrapWithLabels(fileKey []byte) ([]*age.Stanza, []string, error) {
+	sssStanza, isPQ, err := policy.wrap(fileKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stanzaBody, err := sssStanza.Marshal()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var labels []string
+	if isPQ {
+		labels = []string{"postquantum"}
+	}
+
+	return []*age.Stanza{{Type: "sss", Body: stanzaBody}}, labels, nil
+}
+
+func (policy *SSS) wrap(fileKey []byte) (stanza *SSSStanza, isPQ bool, err error) {
 	stanza = &SSSStanza{}
 	stanza.Version = 1
 
 	if policy.Shares != nil {
 		if policy.Threshold <= 0 {
-			return nil, errors.New("invalid threshold")
+			return nil, false, errors.New("invalid threshold")
 		}
 
 		var fileKeyShares [][]byte
@@ -70,12 +90,13 @@ func (policy *SSS) wrap(fileKey []byte) (stanza *SSSStanza, err error) {
 		} else {
 			fileKeyShares, err = shamir.Split(fileKey, len(policy.Shares), policy.Threshold)
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 		}
 
 		stanza.Threshold = policy.Threshold
 
+		nonPQCount := 0
 		for i, fileKeyShare := range fileKeyShares {
 			// The implementation of SSS creates shares that are one byte larger than the
 			// original secret, but we need the file key share to be exactly the same size
@@ -87,9 +108,13 @@ func (policy *SSS) wrap(fileKey []byte) (stanza *SSSStanza, err error) {
 				shareWithoutX[i] = fileKeyShare[i]
 			}
 
-			subStanza, err := policy.Shares[i].wrap(shareWithoutX)
+			subStanza, subIsPQ, err := policy.Shares[i].wrap(shareWithoutX)
 			if err != nil {
-				return nil, err
+				return nil, false, err
+			}
+
+			if !subIsPQ {
+				nonPQCount++
 			}
 
 			if policy.Threshold > 1 {
@@ -99,11 +124,15 @@ func (policy *SSS) wrap(fileKey []byte) (stanza *SSSStanza, err error) {
 			stanza.Shares = append(stanza.Shares, subStanza)
 		}
 
+		// The SSS group is PQ if a quantum attacker can't reconstruct the secret:
+		// they'd need `threshold` shares, but can only break `nonPQCount` of them.
+		isPQ = nonPQCount < policy.Threshold
+
 		return
 	}
 
 	if policy.Recipient == "" {
-		return nil, errors.New("missing recipient in policy")
+		return nil, false, errors.New("missing recipient in policy")
 	}
 
 	policy.Recipient = strings.TrimSpace(policy.Recipient)
@@ -113,80 +142,88 @@ func (policy *SSS) wrap(fileKey []byte) (stanza *SSSStanza, err error) {
 	switch {
 	case strings.HasPrefix(policy.Recipient, "password-"):
 		if policy.Recipient == "password-" {
-			return nil, errors.New("missing identifier for password")
+			return nil, false, errors.New("missing identifier for password")
 		}
 
 		passwordId := policy.Recipient[9:]
 		password, err := policy.Plugin.RequestValue(fmt.Sprintf("Please enter password \"%s\":", passwordId), true)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
 		password2, err := policy.Plugin.RequestValue(fmt.Sprintf("Please confirm password \"%s\":", passwordId), true)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
 		if password != password2 {
-			return nil, errors.New("passwords do not match")
+			return nil, false, errors.New("passwords do not match")
 		}
 
 		scriptRecipient, err := age.NewScryptRecipient(password)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
 		wrappedShare, err = scriptRecipient.Wrap(fileKey)
 
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 	case strings.HasPrefix(policy.Recipient, "age1pq1"):
 		hybridRecipient, err := age.ParseHybridRecipient(policy.Recipient)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
-		wrappedShare, err = hybridRecipient.Wrap(fileKey)
+		wrappedShare, labels, err := hybridRecipient.WrapWithLabels(fileKey)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
+
+		isPQ = slices.Contains(labels, "postquantum")
+		stanza.Stanza = wrappedShare
+		return stanza, isPQ, nil
 	case strings.HasPrefix(policy.Recipient, "age1") && strings.Count(policy.Recipient, "1") > 1:
 		pluginRecipient, err := plugin.NewRecipient(policy.Recipient, getPluginClientUIProxy(policy.Plugin))
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
-		wrappedShare, err = pluginRecipient.Wrap(fileKey)
+		wrappedShare, labels, err := pluginRecipient.WrapWithLabels(fileKey)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
+
+		isPQ = slices.Contains(labels, "postquantum")
+		stanza.Stanza = wrappedShare
+		return stanza, isPQ, nil
 	case strings.HasPrefix(policy.Recipient, "age1"):
 		x25519Recipient, err := age.ParseX25519Recipient(policy.Recipient)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
 		wrappedShare, err = x25519Recipient.Wrap(fileKey)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 	case strings.HasPrefix(policy.Recipient, "ssh-"):
 		sshRecipient, err := agessh.ParseRecipient(policy.Recipient)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
 		wrappedShare, err = sshRecipient.Wrap(fileKey)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 	default:
-		return nil, fmt.Errorf("unsupported recipient %s", policy.Recipient)
+		return nil, false, fmt.Errorf("unsupported recipient %s", policy.Recipient)
 	}
 
 	if wrappedShare == nil {
-		return nil, fmt.Errorf("could not encrypt to recipient %s", policy.Recipient)
+		return nil, false, fmt.Errorf("could not encrypt to recipient %s", policy.Recipient)
 	}
 
 	stanza.Stanza = wrappedShare
