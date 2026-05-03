@@ -170,6 +170,10 @@ func (policy *SSS) wrap(fileKey []byte) (stanza *SSSStanza, isPQ bool, err error
 		if err != nil {
 			return nil, false, err
 		}
+
+		// scrypt's primitives (memory-hard KDF + ChaCha20-Poly1305) resist Grover;
+		// password strength is a classical concern, orthogonal to PQ.
+		isPQ = true
 	case strings.HasPrefix(policy.Recipient, "age1pq1"):
 		hybridRecipient, err := age.ParseHybridRecipient(policy.Recipient)
 		if err != nil {
