@@ -354,17 +354,24 @@ func TestWrapWithLabels_Nested(t *testing.T) {
 
 func TestWrapWithLabels_NestedNotPQ(t *testing.T) {
 	// Outer: 1-of-2
-	//   Share 1: PQ recipient
-	//   Share 2: classic recipient
+	//   Share 1: inner 2-of-2 with 2 PQ recipients (PQ group)
+	//   Share 2: classic recipient (leaf)
 	// Outer: nonPQ=1 >= threshold=1 → not PQ
 
-	pqId, _ := age.GenerateHybridIdentity()
+	pq1, _ := age.GenerateHybridIdentity()
+	pq2, _ := age.GenerateHybridIdentity()
 	classicId, _ := age.GenerateX25519Identity()
 
 	policy := &SSS{
 		Threshold: 1,
 		Shares: []*SSS{
-			{Recipient: pqId.Recipient().String()},
+			{
+				Threshold: 2,
+				Shares: []*SSS{
+					{Recipient: pq1.Recipient().String()},
+					{Recipient: pq2.Recipient().String()},
+				},
+			},
 			{Recipient: classicId.Recipient().String()},
 		},
 	}
@@ -377,7 +384,7 @@ func TestWrapWithLabels_NestedNotPQ(t *testing.T) {
 		t.Fatalf("WrapWithLabels: %v", err)
 	}
 	if slices.Contains(labels, "postquantum") {
-		t.Error("1-of-2 with 1 classic share should not be PQ")
+		t.Error("1-of-2 with PQ group + classic leaf: nonPQ(1) >= threshold(1), should not be PQ")
 	}
 }
 
