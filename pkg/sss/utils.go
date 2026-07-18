@@ -3,8 +3,11 @@ package sss
 import (
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 )
+
+const maxDecompressedSize = 1 << 20 // 1 MiB
 
 func compress(rawData []byte) (compressedData []byte, err error) {
 	var gzipBuffer bytes.Buffer
@@ -24,17 +27,21 @@ func compress(rawData []byte) (compressedData []byte, err error) {
 func decompress(compressedData []byte) (rawData []byte, err error) {
 	byteReader := bytes.NewReader(compressedData)
 	gzipReader, err := gzip.NewReader(byteReader)
-
 	if err != nil {
 		return nil, err
 	}
+	defer gzipReader.Close()
 
-	rawData, err = io.ReadAll(gzipReader)
+	limited := io.LimitReader(gzipReader, maxDecompressedSize+1)
+	rawData, err = io.ReadAll(limited)
 	if err != nil {
 		return nil, err
 	}
+	if len(rawData) > maxDecompressedSize {
+		return nil, fmt.Errorf("decompressed data exceeds maximum size of %d bytes", maxDecompressedSize)
+	}
 
-	return
+	return rawData, nil
 }
 
 // add the X value to the share before it's passed to shamir.Combine()
